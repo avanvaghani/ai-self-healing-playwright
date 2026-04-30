@@ -1,5 +1,7 @@
 # AI Self-Healing and Visual QA with Playwright
 
+[![CI](https://github.com/avanvaghani/ai-self-healing-playwright/actions/workflows/ci.yml/badge.svg)](https://github.com/avanvaghani/ai-self-healing-playwright/actions/workflows/ci.yml)
+
 An AI-enhanced QA automation project built with **Playwright**, **TypeScript**, and **Google Gemini**.  
 It demonstrates two practical ideas for modern test engineering:
 
@@ -81,6 +83,14 @@ The GitHub workflow:
 - timestamp and URL
 
 This makes test recovery auditable and useful for improving locator design.
+
+## Demo
+
+Add your self-healing run GIF at `docs/assets/self-healing-demo.gif` and keep this embed:
+
+```md
+![Self-healing demo](docs/assets/self-healing-demo.gif)
+```
 
 ## Notes
 
