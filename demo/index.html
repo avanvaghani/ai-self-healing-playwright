@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Self-Healing Demo</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 300px; }
+        h1 { margin-top: 0; font-size: 1.5rem; color: #1c1e21; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        .success { color: green; display: none; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Login to Sandbox</h1>
+        <div id="form-container">
+            <!-- These IDs will be changed by JavaScript to simulate "broken" selectors -->
+            <input type="text" id="username-stable" placeholder="Username">
+            <input type="password" id="password-stable" placeholder="Password">
+            <button id="login-button-stable" onclick="login()">Login</button>
+        </div>
+        <p id="message" class="success">Login Successful!</p>
+    </div>
+
+    <script>
+        // Randomize IDs on load to break static selectors
+        const randomId = () => Math.random().toString(36).substring(7);
+        
+        document.getElementById('username-stable').id = 'user_' + randomId();
+        document.getElementById('password-stable').id = 'pass_' + randomId();
+        document.getElementById('login-button-stable').id = 'btn_' + randomId();
+
+        function login() {
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('message').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

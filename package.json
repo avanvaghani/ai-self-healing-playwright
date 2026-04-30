@@ -1,0 +1,22 @@
+{
+  "name": "ai-self-healing-playwright",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A self-healing test automation framework using Playwright and Gemini AI.",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "report": "npx playwright show-report"
+  },
+  "dependencies": {
+    "@google/genai": "^1.51.0",
+    "@playwright/test": "^1.43.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "http-server": "^14.1.1",
+    "typescript": "^5.4.5"
+  }
+}
