@@ -3,6 +3,7 @@ import { test, expect } from '../src/fixtures/ai-fixtures.js';
 test.describe('AI Self-Healing Tests', () => {
   
   test('should login successfully even with broken selectors', async ({ smartPage }) => {
+    test.skip(!process.env.GEMINI_API_KEY, 'GEMINI_API_KEY is required for AI selector healing.');
     await smartPage.goto('http://localhost:8080');
 
     // These selectors are "broken" because the demo page randomizes them on load.

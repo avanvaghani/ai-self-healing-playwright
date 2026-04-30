@@ -1,4 +1,4 @@
-import { test as base, Page, Locator } from '@playwright/test';
+import { test as base, Page } from '@playwright/test';
 import { healSelector } from '../utils/ai.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -9,12 +9,63 @@ type SmartPage = Page & {
   smartFill: (selector: string, value: string, goal: string) => Promise<void>;
 };
 
+type HealedSelectorLogEntry = {
+  timestamp: string;
+  oldSelector: string;
+  newSelector: string;
+  goal: string;
+  url: string;
+  strategy: 'fallback' | 'ai';
+};
+
+function getFallbackSelectors(goal: string): string[] {
+  const normalizedGoal = goal.toLowerCase();
+
+  if (normalizedGoal.includes('username')) {
+    return ['input[placeholder*="username" i]', 'input[type="text"]'];
+  }
+  if (normalizedGoal.includes('password')) {
+    return ['input[placeholder*="password" i]', 'input[type="password"]'];
+  }
+  if (normalizedGoal.includes('login')) {
+    return ['button:has-text("Login")', 'button[type="submit"]'];
+  }
+
+  return [];
+}
+
+async function tryActionWithFallbacks(
+  page: Page,
+  action: 'click' | 'fill',
+  value: string | undefined,
+  selectors: string[],
+): Promise<string | null> {
+  for (const candidate of selectors) {
+    try {
+      if (action === 'click') {
+        await page.click(candidate, { timeout: 1500 });
+      } else {
+        await page.fill(candidate, value ?? '', { timeout: 1500 });
+      }
+      return candidate;
+    } catch {
+      // Continue trying the next candidate selector.
+    }
+  }
+  return null;
+}
+
 export const test = base.extend<{ smartPage: SmartPage }>({
   smartPage: async ({ page }, use) => {
     const healedSelectorsFile = path.join(process.cwd(), 'healed-selectors.json');
 
-    const logHealedSelector = (oldSelector: string, newSelector: string, goal: string) => {
-      let log = [];
+    const logHealedSelector = (
+      oldSelector: string,
+      newSelector: string,
+      goal: string,
+      strategy: HealedSelectorLogEntry['strategy'],
+    ) => {
+      let log: HealedSelectorLogEntry[] = [];
       if (fs.existsSync(healedSelectorsFile)) {
         log = JSON.parse(fs.readFileSync(healedSelectorsFile, 'utf-8'));
       }
@@ -23,7 +74,8 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         oldSelector,
         newSelector,
         goal,
-        url: page.url()
+        url: page.url(),
+        strategy,
       });
       fs.writeFileSync(healedSelectorsFile, JSON.stringify(log, null, 2));
     };
@@ -33,17 +85,24 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         try {
           await page.click(selector, { timeout: 5000 });
         } catch (error) {
-          console.log(`[AI] Selector "${selector}" failed. Attempting to heal...`);
+          const fallbackSelector = await tryActionWithFallbacks(page, 'click', undefined, getFallbackSelectors(goal));
+          if (fallbackSelector) {
+            console.log(`[Recovery] Fallback selector found: "${fallbackSelector}".`);
+            logHealedSelector(selector, fallbackSelector, goal, 'fallback');
+            return;
+          }
+
+          console.log(`[AI] Selector "${selector}" failed. Attempting AI healing...`);
           const dom = await page.content();
           const newSelector = await healSelector(selector, dom, goal);
-          
-          if (newSelector) {
-            console.log(`[AI] Healed selector found: "${newSelector}". Retrying click...`);
-            await page.click(newSelector);
-            logHealedSelector(selector, newSelector, goal);
-          } else {
+
+          if (!newSelector) {
             throw error;
           }
+
+          console.log(`[AI] Healed selector found: "${newSelector}". Retrying click...`);
+          await page.click(newSelector);
+          logHealedSelector(selector, newSelector, goal, 'ai');
         }
       },
 
@@ -51,17 +110,24 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         try {
           await page.fill(selector, value, { timeout: 5000 });
         } catch (error) {
-          console.log(`[AI] Selector "${selector}" failed. Attempting to heal...`);
+          const fallbackSelector = await tryActionWithFallbacks(page, 'fill', value, getFallbackSelectors(goal));
+          if (fallbackSelector) {
+            console.log(`[Recovery] Fallback selector found: "${fallbackSelector}".`);
+            logHealedSelector(selector, fallbackSelector, goal, 'fallback');
+            return;
+          }
+
+          console.log(`[AI] Selector "${selector}" failed. Attempting AI healing...`);
           const dom = await page.content();
           const newSelector = await healSelector(selector, dom, goal);
-          
-          if (newSelector) {
-            console.log(`[AI] Healed selector found: "${newSelector}". Retrying fill...`);
-            await page.fill(newSelector, value);
-            logHealedSelector(selector, newSelector, goal);
-          } else {
+
+          if (!newSelector) {
             throw error;
           }
+
+          console.log(`[AI] Healed selector found: "${newSelector}". Retrying fill...`);
+          await page.fill(newSelector, value);
+          logHealedSelector(selector, newSelector, goal, 'ai');
         }
       }
     });

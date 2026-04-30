@@ -5,9 +5,11 @@
   "description": "A self-healing test automation framework using Playwright and Gemini AI.",
   "scripts": {
     "test": "npx playwright test",
+    "test:ci": "npx playwright test --reporter=line",
     "test:headed": "npx playwright test --headed",
     "test:ui": "npx playwright test --ui",
-    "report": "npx playwright show-report"
+    "report": "npx playwright show-report",
+    "typecheck": "npx tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.51.0",

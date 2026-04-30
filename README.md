@@ -1,66 +1,92 @@
-# AI Visual & Self-Healing Playwright Framework 🤖✨
+# AI Self-Healing and Visual QA with Playwright
 
-This is a next-generation test automation framework built with **Playwright**, **TypeScript**, and **Google Gemini AI**. It addresses the common pain point of brittle selectors and rigid visual regression in modern web applications.
+An AI-enhanced QA automation project built with **Playwright**, **TypeScript**, and **Google Gemini**.  
+It demonstrates two practical ideas for modern test engineering:
 
-## Key Features
+- resilient selector recovery when UI locators break
+- semantic visual regression analysis instead of pixel-only noise
 
-- **Self-Healing Locators:** Automatically recovers from broken selectors (ID changes, class renames, structural shifts) by using Gemini AI to infer the correct element based on context and goal.
-- **Smart Visual Regression:** Performs semantic visual analysis using Gemini Vision. It distinguishes between meaningful regressions and harmless UI updates, reducing false positives.
-- **Auto-Logging:** Generates a `healed-selectors.json` report during execution, providing engineers with the exact selector updates needed for their codebase.
-- **Clean Architecture:** Implements a professional Page Object Model (POM) structure with custom Playwright fixtures.
+## Why This Project Stands Out
 
-## Project Structure
+- **Self-healing actions:** `smartFill` and `smartClick` attempt the original selector, then deterministic fallback strategies, then Gemini healing.
+- **Semantic visual checks:** Gemini compares baseline and current screenshots and returns structured JSON (`isRegression` + explanation).
+- **Execution evidence:** selector recoveries are written to `healed-selectors.json` with strategy metadata.
+- **CI ready:** GitHub Actions workflow runs type-check + Playwright tests and uploads the Playwright report artifact.
+
+## Architecture
 
 ```text
+.
+├── demo/                     # Local demo app with intentionally unstable selectors
 ├── src/
-│   ├── fixtures/   # Custom Playwright fixtures (smartPage)
-│   ├── utils/      # AI utilities (Gemini integration)
-│   └── pages/      # Page Object Models
-├── tests/          # Test suites (Self-healing & Visual)
-├── demo/           # Local demo application for testing
-├── playwright.config.ts
-└── tsconfig.json
+│   ├── fixtures/
+│   │   └── ai-fixtures.ts    # smartPage fixture (retry + fallback + AI healing)
+│   └── utils/
+│       └── ai.ts             # Gemini integration for selector + visual analysis
+├── tests/
+│   ├── self-healing.spec.ts
+│   └── smart-visual.spec.ts
+├── .github/workflows/ci.yml  # CI pipeline
+└── playwright.config.ts
 ```
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
-- A Google Gemini API Key
+- Gemini API key
 
-### Installation
+### Install
+```bash
+npm install
+```
 
-1. Clone the repository.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up your environment variables:
-   Create a `.env` file in the root:
-   ```env
-   GEMINI_API_KEY=your_api_key_here
-   ```
+### Environment
+Create `.env` in the project root:
 
-### Running Tests
+```env
+GEMINI_API_KEY=your_api_key_here
+```
 
-To run the self-healing demonstration:
+## Run Locally
+
 ```bash
 npm test
 ```
 
-To run tests in headed mode:
+Useful commands:
+
 ```bash
+npm run typecheck
 npm run test:headed
+npm run test:ui
+npm run report
 ```
 
-## How It Works
+## CI Pipeline
 
-### Self-Healing
-When a `smartClick` or `smartFill` action fails due to a locator timeout, the framework captures the current DOM content and sends it to Gemini. The AI analyzes the DOM against the original "goal" of the action and returns a new, valid selector. The test then retries the action and logs the fix.
+The GitHub workflow:
+- installs dependencies and Chromium
+- runs TypeScript checks
+- executes Playwright tests
+- uploads `playwright-report` as an artifact
 
-### Smart Visual Regression
-Instead of a byte-for-byte pixel comparison, the framework sends two screenshots to Gemini Vision. The AI returns a structured JSON response indicating whether the change is a regression and provides a natural language explanation of its reasoning.
+## Example Healing Log
+
+`healed-selectors.json` entries include:
+- original selector
+- recovered selector
+- action goal
+- recovery strategy (`fallback` or `ai`)
+- timestamp and URL
+
+This makes test recovery auditable and useful for improving locator design.
+
+## Notes
+
+- AI-based tests are skipped when `GEMINI_API_KEY` is missing.
+- The included `demo` app intentionally mutates element IDs to simulate real-world flaky locator failures.
 
 ## License
+
 MIT
