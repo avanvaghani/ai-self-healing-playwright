@@ -85,7 +85,12 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         try {
           await page.click(selector, { timeout: 5000 });
         } catch (error) {
-          const fallbackSelector = await tryActionWithFallbacks(page, 'click', undefined, getFallbackSelectors(goal));
+          const fallbackSelector = await tryActionWithFallbacks(
+            page,
+            'click',
+            undefined,
+            getFallbackSelectors(goal),
+          );
           if (fallbackSelector) {
             console.log(`[Recovery] Fallback selector found: "${fallbackSelector}".`);
             logHealedSelector(selector, fallbackSelector, goal, 'fallback');
@@ -110,7 +115,12 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         try {
           await page.fill(selector, value, { timeout: 5000 });
         } catch (error) {
-          const fallbackSelector = await tryActionWithFallbacks(page, 'fill', value, getFallbackSelectors(goal));
+          const fallbackSelector = await tryActionWithFallbacks(
+            page,
+            'fill',
+            value,
+            getFallbackSelectors(goal),
+          );
           if (fallbackSelector) {
             console.log(`[Recovery] Fallback selector found: "${fallbackSelector}".`);
             logHealedSelector(selector, fallbackSelector, goal, 'fallback');
@@ -129,7 +139,7 @@ export const test = base.extend<{ smartPage: SmartPage }>({
           await page.fill(newSelector, value);
           logHealedSelector(selector, newSelector, goal, 'ai');
         }
-      }
+      },
     });
 
     await use(smartPage);

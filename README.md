@@ -48,21 +48,23 @@ flowchart LR
 
 ## Healing strategies (current demo)
 
-| Order | Strategy | When it runs |
-|------:|----------|----------------|
-| 1 | **Original selector** | First attempt (`click` / `fill` with timeout). |
-| 2 | **Fallback CSS** | If the action goal mentions username, password, or login, tries placeholder/type/text-based selectors (see `src/fixtures/ai-fixtures.ts`). |
-| 3 | **AI healing** | If fallbacks fail, sends full page HTML + goal to Gemini; expects a single CSS/XPath string or `NOT_FOUND`. |
+| Order | Strategy              | When it runs                                                                                                                               |
+| ----: | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+|     1 | **Original selector** | First attempt (`click` / `fill` with timeout).                                                                                             |
+|     2 | **Fallback CSS**      | If the action goal mentions username, password, or login, tries placeholder/type/text-based selectors (see `src/fixtures/ai-fixtures.ts`). |
+|     3 | **AI healing**        | If fallbacks fail, sends full page HTML + goal to Gemini; expects a single CSS/XPath string or `NOT_FOUND`.                                |
 
 The demo app (`demo/index.html`) randomizes element IDs on load to simulate **dynamic ID** breakage. Expanding scenarios (class rename, DOM moves, label text changes) is a natural next step for more specs.
 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ (see `package.json` → `engines`)
 - Gemini API key (for AI tests and CI)
 
 ### Install
+
 ```bash
 npm install
 npx playwright install
@@ -71,6 +73,7 @@ npx playwright install
 The second command downloads Chromium, Firefox, and WebKit binaries for Playwright. CI uses `playwright install --with-deps` automatically.
 
 ### Environment
+
 Copy the example file and edit:
 
 ```bash
@@ -119,6 +122,7 @@ Visual analysis (`analyzeVisualDiff`) sends:
 ## CI Pipeline
 
 The GitHub workflow:
+
 - installs dependencies and **Chromium, Firefox, and WebKit**
 - runs TypeScript checks
 - executes Playwright tests
@@ -127,6 +131,7 @@ The GitHub workflow:
 ## Example Healing Log
 
 `healed-selectors.json` entries include:
+
 - original selector
 - recovered selector
 - action goal
@@ -139,11 +144,11 @@ This makes test recovery auditable and useful for improving locator design.
 
 After a local or CI run, you can summarize recoveries from `healed-selectors.json`:
 
-| Metric | Example |
-|--------|---------|
-| Total heal events | *e.g. 6* |
-| Resolved by **fallback** | *e.g. 100%* |
-| Resolved by **AI** | *e.g. 0%* |
+| Metric                   | Example     |
+| ------------------------ | ----------- |
+| Total heal events        | _e.g. 6_    |
+| Resolved by **fallback** | _e.g. 100%_ |
+| Resolved by **AI**       | _e.g. 0%_   |
 
 Low **AI** percentage on the current demo is expected: fallbacks often succeed before Gemini runs.
 

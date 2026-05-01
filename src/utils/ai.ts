@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
-import * as dotenv from "dotenv";
+import { GoogleGenAI } from '@google/genai';
+import * as dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -8,7 +8,7 @@ let client: any = null;
 function getClient() {
   if (!client) {
     client = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY || "",
+      apiKey: process.env.GEMINI_API_KEY || '',
     });
   }
   return client;
@@ -17,7 +17,11 @@ function getClient() {
 /**
  * Uses Gemini to infer a new selector based on a broken selector and the current DOM state.
  */
-export async function healSelector(oldSelector: string, domSnippet: string, goal: string): Promise<string | null> {
+export async function healSelector(
+  oldSelector: string,
+  domSnippet: string,
+  goal: string,
+): Promise<string | null> {
   const prompt = `
     You are an expert Test Automation Engineer specialized in Playwright and CSS selectors.
     A test failed because a selector no longer works.
@@ -37,14 +41,14 @@ export async function healSelector(oldSelector: string, domSnippet: string, goal
 
   try {
     const result = await getClient().models.generateContent({
-      model: "gemini-flash-latest",
-      contents: [{ role: "user", parts: [{ text: prompt }] }]
+      model: 'gemini-flash-latest',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
-    
+
     const text = result.candidates[0].content.parts[0].text.trim();
-    return text === "NOT_FOUND" ? null : text;
+    return text === 'NOT_FOUND' ? null : text;
   } catch (error) {
-    console.error("AI Healing Error:", error);
+    console.error('AI Healing Error:', error);
     return null;
   }
 }
@@ -52,7 +56,10 @@ export async function healSelector(oldSelector: string, domSnippet: string, goal
 /**
  * Uses Gemini Vision to perform semantic visual regression analysis.
  */
-export async function analyzeVisualDiff(baselineBase64: string, currentBase64: string): Promise<{ isRegression: boolean; explanation: string }> {
+export async function analyzeVisualDiff(
+  baselineBase64: string,
+  currentBase64: string,
+): Promise<{ isRegression: boolean; explanation: string }> {
   const prompt = `
     Compare these two screenshots of a web application.
     The first is the "Baseline" and the second is the "Current" state.
@@ -69,21 +76,23 @@ export async function analyzeVisualDiff(baselineBase64: string, currentBase64: s
 
   try {
     const result = await getClient().models.generateContent({
-      model: "gemini-flash-latest",
-      contents: [{
-        role: "user",
-        parts: [
-          { text: prompt },
-          { inlineData: { data: baselineBase64, mimeType: "image/png" } },
-          { inlineData: { data: currentBase64, mimeType: "image/png" } },
-        ]
-      }]
+      model: 'gemini-flash-latest',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            { inlineData: { data: baselineBase64, mimeType: 'image/png' } },
+            { inlineData: { data: currentBase64, mimeType: 'image/png' } },
+          ],
+        },
+      ],
     });
 
-    const text = result.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
+    const text = result.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
     return JSON.parse(text);
   } catch (error) {
-    console.error("AI Visual Analysis Error:", error);
-    return { isRegression: true, explanation: "AI analysis failed, defaulting to regression." };
+    console.error('AI Visual Analysis Error:', error);
+    return { isRegression: true, explanation: 'AI analysis failed, defaulting to regression.' };
   }
 }
