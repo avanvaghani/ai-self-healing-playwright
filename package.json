@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "A self-healing test automation framework using Playwright and Gemini AI.",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "npx playwright test",
     "test:ci": "npx playwright test --reporter=line",
