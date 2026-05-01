@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / discussion
+    url: https://github.com/avanvaghani/ai-self-healing-playwright/discussions
+    about: Use GitHub Discussions for open-ended questions and design ideas.
