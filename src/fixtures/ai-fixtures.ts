@@ -18,7 +18,7 @@ type HealedSelectorLogEntry = {
   strategy: 'fallback' | 'ai';
 };
 
-function getFallbackSelectors(goal: string): string[] {
+export function getFallbackSelectors(goal: string): string[] {
   const normalizedGoal = goal.toLowerCase();
 
   if (normalizedGoal.includes('username')) {
@@ -29,6 +29,26 @@ function getFallbackSelectors(goal: string): string[] {
   }
   if (normalizedGoal.includes('login')) {
     return ['button:has-text("Login")', 'button[type="submit"]'];
+  }
+  if (normalizedGoal.includes('quantity')) {
+    return ['input[placeholder*="quantity" i]', 'input[type="number"]'];
+  }
+  if (normalizedGoal.includes('address')) {
+    return ['input[placeholder*="address" i]', 'input[type="text"]'];
+  }
+  if (
+    normalizedGoal.includes('place order') ||
+    normalizedGoal.includes('checkout') ||
+    normalizedGoal.includes('purchase')
+  ) {
+    return [
+      'button:has-text("Place Order")',
+      'button:has-text("Confirm Order")',
+      'button:has-text("Submit Order")',
+      'button:has-text("Pay Now")',
+      'button:has-text("Complete Purchase")',
+      'button[type="submit"]',
+    ];
   }
 
   return [];
