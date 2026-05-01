@@ -18,7 +18,7 @@ type HealedSelectorLogEntry = {
   strategy: 'fallback' | 'ai';
 };
 
-function getFallbackSelectors(goal: string): string[] {
+export function getFallbackSelectors(goal: string): string[] {
   const normalizedGoal = goal.toLowerCase();
 
   if (normalizedGoal.includes('username')) {
@@ -29,6 +29,26 @@ function getFallbackSelectors(goal: string): string[] {
   }
   if (normalizedGoal.includes('login')) {
     return ['button:has-text("Login")', 'button[type="submit"]'];
+  }
+  if (normalizedGoal.includes('quantity')) {
+    return ['input[placeholder*="quantity" i]', 'input[type="number"]'];
+  }
+  if (normalizedGoal.includes('address')) {
+    return ['input[placeholder*="address" i]', 'input[type="text"]'];
+  }
+  if (
+    normalizedGoal.includes('place order') ||
+    normalizedGoal.includes('checkout') ||
+    normalizedGoal.includes('purchase')
+  ) {
+    return [
+      'button:has-text("Place Order")',
+      'button:has-text("Confirm Order")',
+      'button:has-text("Submit Order")',
+      'button:has-text("Pay Now")',
+      'button:has-text("Complete Purchase")',
+      'button[type="submit"]',
+    ];
   }
 
   return [];
@@ -57,7 +77,9 @@ async function tryActionWithFallbacks(
 
 export const test = base.extend<{ smartPage: SmartPage }>({
   smartPage: async ({ page }, use) => {
-    const healedSelectorsFile = path.join(process.cwd(), 'healed-selectors.json');
+    // Per-worker file so parallel Playwright workers do not corrupt each other's writes.
+    const workerIndex = process.env.TEST_PARALLEL_INDEX ?? '0';
+    const healedSelectorsFile = path.join(process.cwd(), `healed-selectors.${workerIndex}.json`);
 
     const logHealedSelector = (
       oldSelector: string,
@@ -67,7 +89,12 @@ export const test = base.extend<{ smartPage: SmartPage }>({
     ) => {
       let log: HealedSelectorLogEntry[] = [];
       if (fs.existsSync(healedSelectorsFile)) {
-        log = JSON.parse(fs.readFileSync(healedSelectorsFile, 'utf-8'));
+        try {
+          log = JSON.parse(fs.readFileSync(healedSelectorsFile, 'utf-8'));
+        } catch {
+          // Corrupted file from a previous interrupted run — start fresh.
+          log = [];
+        }
       }
       log.push({
         timestamp: new Date().toISOString(),
@@ -85,7 +112,12 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         try {
           await page.click(selector, { timeout: 5000 });
         } catch (error) {
-          const fallbackSelector = await tryActionWithFallbacks(page, 'click', undefined, getFallbackSelectors(goal));
+          const fallbackSelector = await tryActionWithFallbacks(
+            page,
+            'click',
+            undefined,
+            getFallbackSelectors(goal),
+          );
           if (fallbackSelector) {
             console.log(`[Recovery] Fallback selector found: "${fallbackSelector}".`);
             logHealedSelector(selector, fallbackSelector, goal, 'fallback');
@@ -110,7 +142,12 @@ export const test = base.extend<{ smartPage: SmartPage }>({
         try {
           await page.fill(selector, value, { timeout: 5000 });
         } catch (error) {
-          const fallbackSelector = await tryActionWithFallbacks(page, 'fill', value, getFallbackSelectors(goal));
+          const fallbackSelector = await tryActionWithFallbacks(
+            page,
+            'fill',
+            value,
+            getFallbackSelectors(goal),
+          );
           if (fallbackSelector) {
             console.log(`[Recovery] Fallback selector found: "${fallbackSelector}".`);
             logHealedSelector(selector, fallbackSelector, goal, 'fallback');
@@ -129,7 +166,7 @@ export const test = base.extend<{ smartPage: SmartPage }>({
           await page.fill(newSelector, value);
           logHealedSelector(selector, newSelector, goal, 'ai');
         }
-      }
+      },
     });
 
     await use(smartPage);

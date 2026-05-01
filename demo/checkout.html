@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Self-Healing Demo · Checkout</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #f0f2f5;
+      }
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 360px;
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 1.5rem;
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0.75rem 0;
+        align-items: center;
+      }
+      .row label {
+        flex: 0 0 90px;
+        color: #444;
+      }
+      input,
+      button {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font: inherit;
+      }
+      input {
+        flex: 1;
+      }
+      button {
+        width: 100%;
+        background: #28a745;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 0.5rem;
+      }
+      button:hover {
+        background: #1e7e34;
+      }
+      .success {
+        color: green;
+        display: none;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Checkout</h1>
+      <div id="form-container">
+        <!-- Stable IDs that the test starts with — JS below will mutate them. -->
+        <div class="row">
+          <label for="quantity-stable">Quantity</label>
+          <input
+            type="number"
+            id="quantity-stable"
+            class="qty-input"
+            placeholder="Quantity"
+            value="1"
+          />
+        </div>
+        <div class="row">
+          <label for="address-stable">Address</label>
+          <input
+            type="text"
+            id="address-stable"
+            class="addr-input"
+            placeholder="Shipping address"
+          />
+        </div>
+        <button id="place-order-stable" class="primary-cta" onclick="placeOrder()">
+          Place Order
+        </button>
+      </div>
+      <p id="confirm" class="success">Order placed successfully!</p>
+    </div>
+
+    <script>
+      // Three independent breakage modes to exercise different healing paths.
+      const randomSuffix = () => Math.random().toString(36).slice(2, 8);
+
+      // 1) Dynamic ID — same as the login demo.
+      const qty = document.getElementById('quantity-stable');
+      qty.id = 'qty_' + randomSuffix();
+
+      // 2) Class rename — original class string is replaced.
+      const addr = document.getElementById('address-stable');
+      addr.className = 'field_' + randomSuffix();
+      addr.id = 'addr_' + randomSuffix();
+
+      // 3) Button text + class change — text varies between common synonyms.
+      const cta = document.getElementById('place-order-stable');
+      const labels = ['Confirm Order', 'Submit Order', 'Pay Now', 'Complete Purchase'];
+      cta.textContent = labels[Math.floor(Math.random() * labels.length)];
+      cta.className = 'cta_' + randomSuffix();
+      cta.id = 'btn_' + randomSuffix();
+
+      function placeOrder() {
+        document.getElementById('form-container').style.display = 'none';
+        document.getElementById('confirm').style.display = 'block';
+      }
+    </script>
+  </body>
+</html>
