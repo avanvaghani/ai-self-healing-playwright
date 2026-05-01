@@ -77,7 +77,9 @@ async function tryActionWithFallbacks(
 
 export const test = base.extend<{ smartPage: SmartPage }>({
   smartPage: async ({ page }, use) => {
-    const healedSelectorsFile = path.join(process.cwd(), 'healed-selectors.json');
+    // Per-worker file so parallel Playwright workers do not corrupt each other's writes.
+    const workerIndex = process.env.TEST_PARALLEL_INDEX ?? '0';
+    const healedSelectorsFile = path.join(process.cwd(), `healed-selectors.${workerIndex}.json`);
 
     const logHealedSelector = (
       oldSelector: string,
@@ -87,7 +89,12 @@ export const test = base.extend<{ smartPage: SmartPage }>({
     ) => {
       let log: HealedSelectorLogEntry[] = [];
       if (fs.existsSync(healedSelectorsFile)) {
-        log = JSON.parse(fs.readFileSync(healedSelectorsFile, 'utf-8'));
+        try {
+          log = JSON.parse(fs.readFileSync(healedSelectorsFile, 'utf-8'));
+        } catch {
+          // Corrupted file from a previous interrupted run — start fresh.
+          log = [];
+        }
       }
       log.push({
         timestamp: new Date().toISOString(),
