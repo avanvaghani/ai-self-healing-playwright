@@ -23,11 +23,7 @@ test.describe('Healing scenarios on the checkout page', () => {
   test('recovers from class rename on a text input', async ({ smartPage }) => {
     await smartPage.goto('http://localhost:8080/checkout.html');
 
-    await smartPage.smartFill(
-      'input.addr-input',
-      '221B Baker Street',
-      'fill the shipping address',
-    );
+    await smartPage.smartFill('input.addr-input', '221B Baker Street', 'fill the shipping address');
 
     const filled = await smartPage.locator('input[placeholder*="address" i]').inputValue();
     expect(filled).toBe('221B Baker Street');

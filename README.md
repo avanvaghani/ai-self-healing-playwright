@@ -33,28 +33,41 @@ flowchart LR
 
 ```text
 .
-├── demo/                     # Local demo app with intentionally unstable selectors
+├── demo/                          # Local demo apps with unstable selectors
+│   ├── index.html                 # Login form — dynamic IDs
+│   └── checkout.html              # Checkout form — IDs, classes, button text
 ├── src/
 │   ├── fixtures/
-│   │   └── ai-fixtures.ts    # smartPage fixture (retry + fallback + AI healing)
+│   │   ├── ai-fixtures.ts         # smartPage fixture (retry + fallback + AI healing)
+│   │   └── ai-fixtures.test.ts    # Vitest unit tests for fallback rules
 │   └── utils/
-│       └── ai.ts             # Gemini integration for selector + visual analysis
+│       ├── ai.ts                  # Gemini integration (selector + visual analysis)
+│       └── ai.test.ts             # Vitest unit tests for the Gemini wrapper
 ├── tests/
-│   ├── self-healing.spec.ts
-│   └── smart-visual.spec.ts
-├── .github/workflows/ci.yml  # CI pipeline
+│   ├── self-healing.spec.ts       # Login flow with broken selectors
+│   ├── smart-visual.spec.ts       # Semantic visual diff
+│   └── healing-scenarios.spec.ts  # Class rename, text change, dynamic ID
+├── .github/workflows/ci.yml       # CI pipeline
+├── eslint.config.js               # ESLint flat config
+├── .prettierrc.json               # Prettier config
+├── vitest.config.ts               # Unit-test runner
 └── playwright.config.ts
 ```
 
-## Healing strategies (current demo)
+## Healing strategies
 
-| Order | Strategy              | When it runs                                                                                                                               |
-| ----: | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-|     1 | **Original selector** | First attempt (`click` / `fill` with timeout).                                                                                             |
-|     2 | **Fallback CSS**      | If the action goal mentions username, password, or login, tries placeholder/type/text-based selectors (see `src/fixtures/ai-fixtures.ts`). |
-|     3 | **AI healing**        | If fallbacks fail, sends full page HTML + goal to Gemini; expects a single CSS/XPath string or `NOT_FOUND`.                                |
+| Order | Strategy              | When it runs                                                                                                                                                                   |
+| ----: | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|     1 | **Original selector** | First attempt (`click` / `fill` with timeout).                                                                                                                                 |
+|     2 | **Fallback CSS**      | If the action goal mentions a known intent (username, password, login, quantity, address, place-order / checkout / purchase), tries placeholder / type / text-based selectors. |
+|     3 | **AI healing**        | If fallbacks fail, sends full page HTML + goal to Gemini; expects a single CSS/XPath string or `NOT_FOUND`.                                                                    |
 
-The demo app (`demo/index.html`) randomizes element IDs on load to simulate **dynamic ID** breakage. Expanding scenarios (class rename, DOM moves, label text changes) is a natural next step for more specs.
+Two demo pages exercise different breakage modes:
+
+- **`demo/index.html`** — randomizes element IDs on the login form (**dynamic ID**).
+- **`demo/checkout.html`** — randomizes IDs _and_ renames classes _and_ rotates the order CTA's text between four synonyms (**dynamic ID + class rename + text change**).
+
+Adding more scenarios (DOM restructuring, attribute swaps, RTL/i18n label changes) is a natural next step.
 
 ## Quick Start
 
@@ -87,16 +100,21 @@ Set `GEMINI_API_KEY` in `.env` (never commit `.env`).
 ## Run Locally
 
 ```bash
-npm test
+npm test            # Full Playwright suite (3 browsers)
+npm run test:unit   # Fast Vitest unit tests (mocked Gemini, no API calls)
 ```
 
 Useful commands:
 
 ```bash
-npm run typecheck
-npm run test:headed
-npm run test:ui
-npm run report
+npm run typecheck       # TypeScript validation
+npm run lint            # ESLint
+npm run lint:fix        # ESLint with auto-fix
+npm run format          # Apply Prettier
+npm run format:check    # Check formatting only
+npm run test:headed     # Playwright in a visible browser
+npm run test:ui         # Playwright UI mode
+npm run report          # Open the last Playwright report
 ```
 
 ## Cost, limits, and production use
@@ -121,12 +139,16 @@ Visual analysis (`analyzeVisualDiff`) sends:
 
 ## CI Pipeline
 
-The GitHub workflow:
+The GitHub workflow runs, in order:
 
-- installs dependencies and **Chromium, Firefox, and WebKit**
-- runs TypeScript checks
-- executes Playwright tests
-- uploads `playwright-report` as an artifact
+- `npm ci`
+- `npm run lint` (ESLint)
+- `npm run format:check` (Prettier)
+- `npm run typecheck` (TypeScript)
+- `npm run test:unit` (Vitest, mocked Gemini)
+- `npx playwright install --with-deps chromium firefox webkit`
+- `npm run test:ci` (Playwright across all three browsers)
+- Uploads `playwright-report` as an artifact on success or failure.
 
 ## Example Healing Log
 
