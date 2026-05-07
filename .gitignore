@@ -4,6 +4,7 @@ dist/
 test-results/
 playwright-report/
 blob-report/
+reports/
 playwright/.cache
 healed-selectors.json
 healed-selectors.*.json

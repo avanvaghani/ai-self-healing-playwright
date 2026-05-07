@@ -1,4 +1,5 @@
 import { test, expect } from '../src/fixtures/ai-fixtures.js';
+import { annotateScenario } from '../src/utils/qa-scenarios.js';
 
 /**
  * Exercises three breakage modes the demo checkout page randomizes on every load:
@@ -11,7 +12,8 @@ import { test, expect } from '../src/fixtures/ai-fixtures.js';
  * If fallbacks miss, AI healing kicks in (requires GEMINI_API_KEY).
  */
 test.describe('Healing scenarios on the checkout page', () => {
-  test('recovers from dynamic ID on a number input', async ({ smartPage }) => {
+  test('recovers from dynamic ID on a number input', async ({ smartPage }, testInfo) => {
+    annotateScenario(testInfo, 'QA-UI-002');
     await smartPage.goto('http://localhost:8080/checkout.html');
 
     await smartPage.smartFill('#quantity-stable', '3', 'set quantity');
@@ -20,7 +22,8 @@ test.describe('Healing scenarios on the checkout page', () => {
     expect(filled).toBe('3');
   });
 
-  test('recovers from class rename on a text input', async ({ smartPage }) => {
+  test('recovers from class rename on a text input', async ({ smartPage }, testInfo) => {
+    annotateScenario(testInfo, 'QA-UI-002');
     await smartPage.goto('http://localhost:8080/checkout.html');
 
     await smartPage.smartFill('input.addr-input', '221B Baker Street', 'fill the shipping address');
@@ -29,7 +32,8 @@ test.describe('Healing scenarios on the checkout page', () => {
     expect(filled).toBe('221B Baker Street');
   });
 
-  test('recovers from text + class change on the order button', async ({ smartPage }) => {
+  test('recovers from text + class change on the order button', async ({ smartPage }, testInfo) => {
+    annotateScenario(testInfo, 'QA-UI-002');
     await smartPage.goto('http://localhost:8080/checkout.html');
 
     await smartPage.smartFill('#quantity-stable', '1', 'set quantity');

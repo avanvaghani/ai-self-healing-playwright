@@ -1,8 +1,9 @@
 import { test, expect } from '../src/fixtures/ai-fixtures.js';
+import { annotateScenario } from '../src/utils/qa-scenarios.js';
 
 test.describe('AI Self-Healing Tests', () => {
-  test('should login successfully even with broken selectors', async ({ smartPage }) => {
-    test.skip(!process.env.GEMINI_API_KEY, 'GEMINI_API_KEY is required for AI selector healing.');
+  test('should login successfully even with broken selectors', async ({ smartPage }, testInfo) => {
+    annotateScenario(testInfo, 'QA-UI-001');
     await smartPage.goto('http://localhost:8080');
 
     // These selectors are "broken" because the demo page randomizes them on load.

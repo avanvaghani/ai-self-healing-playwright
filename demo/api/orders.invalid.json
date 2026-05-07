@@ -1,0 +1,15 @@
+{
+  "orderId": "",
+  "customerEmail": "qa-example.com",
+  "items": [
+    {
+      "sku": "",
+      "quantity": 0,
+      "price": -5
+    }
+  ],
+  "total": 0,
+  "currency": "EUR",
+  "status": "unknown",
+  "responseTimeMs": 1200
+}

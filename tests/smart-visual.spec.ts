@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { analyzeVisualDiff } from '../src/utils/ai.js';
+import { annotateScenario } from '../src/utils/qa-scenarios.js';
 
 test.describe('Smart Visual Regression', () => {
-  test('returns a structurally valid response from Gemini Vision', async ({ page }) => {
+  test('returns a structurally valid response from Gemini Vision', async ({ page }, testInfo) => {
+    annotateScenario(testInfo, 'QA-VIS-001');
     test.skip(!process.env.GEMINI_API_KEY, 'GEMINI_API_KEY is required for AI visual analysis.');
     await page.goto('http://localhost:8080');
 

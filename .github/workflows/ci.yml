@@ -41,10 +41,22 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
+      - name: Generate QA Intelligence report
+        if: always()
+        run: npm run qa:report
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload QA Intelligence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-intelligence-report
+          path: reports
           if-no-files-found: ignore

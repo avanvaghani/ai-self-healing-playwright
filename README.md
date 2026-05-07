@@ -1,80 +1,66 @@
-# AI Self-Healing and Visual QA with Playwright
+# QA Expert Lab: AI Self-Healing TestOps Suite
 
 [![CI](https://github.com/avanvaghani/ai-self-healing-playwright/actions/workflows/ci.yml/badge.svg)](https://github.com/avanvaghani/ai-self-healing-playwright/actions/workflows/ci.yml)
 
-An AI-enhanced QA automation project built with **Playwright**, **TypeScript**, and **Google Gemini**.  
-It demonstrates two practical ideas for modern test engineering:
+A resume-ready QA automation project built with **Playwright**, **TypeScript**, **Google Gemini**, and **GitHub Actions**.
 
-- resilient selector recovery when UI locators break
-- semantic visual regression analysis instead of pixel-only noise
+It demonstrates a practical modern QA workflow: detect broken selectors, recover stable locators, validate UI/API/accessibility/performance quality gates, and publish evidence that a reviewer can inspect from CI artifacts.
 
 ## Why This Project Stands Out
 
-- **Self-healing actions:** `smartFill` and `smartClick` attempt the original selector, then deterministic fallback strategies, then Gemini healing.
-- **Semantic visual checks:** Gemini compares baseline and current screenshots and returns structured JSON (`isRegression` + explanation).
-- **Execution evidence:** selector recoveries are written to `healed-selectors.json` with strategy metadata.
-- **CI ready:** GitHub Actions workflow runs type-check + Playwright tests and uploads the Playwright report artifact.
+- **Self-healing UI actions:** `smartFill` and `smartClick` try the original selector, deterministic fallbacks, then Gemini-assisted healing.
+- **Auditable recovery evidence:** healed selector events are written to `reports/healed-selectors.*.json` and merged into `reports/healed-selectors.json`.
+- **API contract checks:** local API fixtures are validated with strict, actionable schema errors.
+- **Accessibility gate:** checkout flow is scanned with `@axe-core/playwright`.
+- **Performance budget:** local UI/API checks assert fast response and render timing.
+- **Semantic visual QA:** Gemini Vision can compare screenshots and return structured regression analysis.
+- **CI-ready reporting:** GitHub Actions uploads Playwright reports and a QA Intelligence report.
 
-## Healing flow
+## Quality Gates
 
-`smartClick` / `smartFill` only call Gemini **after** the primary selector fails — not on every action.
-
-```mermaid
-flowchart LR
-  A[Try original selector] -->|fails| B[Try deterministic fallbacks]
-  B -->|success| L[Log strategy: fallback]
-  B -->|fails| C[Send DOM + goal to Gemini]
-  C -->|new selector| D[Retry action]
-  D --> L2[Log strategy: ai]
-  C -->|NOT_FOUND| E[Re-throw original error]
-```
+| Gate            | Evidence                                                       |
+| --------------- | -------------------------------------------------------------- |
+| Self-healing UI | Broken login/checkout selectors recovered by fallback or AI    |
+| API contract    | Valid and invalid order payloads checked with typed validators |
+| Accessibility   | Axe scan blocks serious/critical checkout violations           |
+| Performance     | Navigation and API response budgets checked in Playwright      |
+| Visual QA       | Gemini Vision validates screenshot comparison payloads         |
+| Flake analysis  | Repeated selector healing is grouped into actionable signals   |
 
 ## Architecture
 
 ```text
 .
-├── demo/                          # Local demo apps with unstable selectors
-│   ├── index.html                 # Login form — dynamic IDs
-│   └── checkout.html              # Checkout form — IDs, classes, button text
+├── demo/                         # Local UI and API fixtures with intentional change modes
+├── scripts/qa-report.mjs          # Generates QA Intelligence artifacts
 ├── src/
-│   ├── fixtures/
-│   │   ├── ai-fixtures.ts         # smartPage fixture (retry + fallback + AI healing)
-│   │   └── ai-fixtures.test.ts    # Vitest unit tests for fallback rules
-│   └── utils/
-│       ├── ai.ts                  # Gemini integration (selector + visual analysis)
-│       └── ai.test.ts             # Vitest unit tests for the Gemini wrapper
-├── tests/
-│   ├── self-healing.spec.ts       # Login flow with broken selectors
-│   ├── smart-visual.spec.ts       # Semantic visual diff
-│   └── healing-scenarios.spec.ts  # Class rename, text change, dynamic ID
-├── .github/workflows/ci.yml       # CI pipeline
-├── eslint.config.js               # ESLint flat config
-├── .prettierrc.json               # Prettier config
-├── vitest.config.ts               # Unit-test runner
+│   ├── fixtures/ai-fixtures.ts    # smartPage fixture with fallback + AI healing
+│   ├── types/qa-report.ts         # Public report interfaces
+│   └── utils/                     # AI, contract, scenario, and report helpers
+├── tests/                         # UI, API, a11y, performance, visual tests
+├── .github/workflows/ci.yml       # CI quality pipeline and artifact upload
 └── playwright.config.ts
 ```
 
-## Healing strategies
+## Healing Flow
 
-| Order | Strategy              | When it runs                                                                                                                                                                   |
-| ----: | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-|     1 | **Original selector** | First attempt (`click` / `fill` with timeout).                                                                                                                                 |
-|     2 | **Fallback CSS**      | If the action goal mentions a known intent (username, password, login, quantity, address, place-order / checkout / purchase), tries placeholder / type / text-based selectors. |
-|     3 | **AI healing**        | If fallbacks fail, sends full page HTML + goal to Gemini; expects a single CSS/XPath string or `NOT_FOUND`.                                                                    |
-
-Two demo pages exercise different breakage modes:
-
-- **`demo/index.html`** — randomizes element IDs on the login form (**dynamic ID**).
-- **`demo/checkout.html`** — randomizes IDs _and_ renames classes _and_ rotates the order CTA's text between four synonyms (**dynamic ID + class rename + text change**).
-
-Adding more scenarios (DOM restructuring, attribute swaps, RTL/i18n label changes) is a natural next step.
+```mermaid
+flowchart LR
+  A[Try original selector] -->|fails| B[Try deterministic fallbacks]
+  B -->|success| C[Log fallback recovery]
+  B -->|fails| D[Send DOM + goal to Gemini]
+  D -->|selector found| E[Retry action]
+  E --> F[Log AI recovery]
+  D -->|not found| G[Fail with original error]
+```
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ (see `package.json` → `engines`)
-- Gemini API key (for AI tests and CI)
+- Node.js 18+
+- npm 9+
+- Optional: `GEMINI_API_KEY` for Gemini selector/visual analysis
 
 ### Install
 
@@ -83,111 +69,81 @@ npm install
 npx playwright install
 ```
 
-The second command downloads Chromium, Firefox, and WebKit binaries for Playwright. CI uses `playwright install --with-deps` automatically.
-
-### Environment
-
-Copy the example file and edit:
+### Run
 
 ```bash
-cp .env.example .env
+npm run qa:ci       # Full local quality pipeline
+npm run qa:demo     # Focused self-healing demo
+npm run qa:report   # Generate reports/quality-summary.md
 ```
 
-On Windows PowerShell: `Copy-Item .env.example .env`
-
-Set `GEMINI_API_KEY` in `.env` (never commit `.env`).
-
-## Run Locally
+Useful targeted commands:
 
 ```bash
-npm test            # Full Playwright suite (3 browsers)
-npm run test:unit   # Fast Vitest unit tests (mocked Gemini, no API calls)
+npm run test:unit
+npm run test:api
+npm run test:a11y
+npm run test:perf
+npm run typecheck
+npm run lint
 ```
 
-Useful commands:
+## QA Intelligence Report
+
+After a test run, generate the portfolio artifact:
 
 ```bash
-npm run typecheck       # TypeScript validation
-npm run lint            # ESLint
-npm run lint:fix        # ESLint with auto-fix
-npm run format          # Apply Prettier
-npm run format:check    # Check formatting only
-npm run test:headed     # Playwright in a visible browser
-npm run test:ui         # Playwright UI mode
-npm run report          # Open the last Playwright report
+npm run qa:report
 ```
 
-## Cost, limits, and production use
+Generated files:
 
-- **Gemini API calls cost money** and count against your quota. This repo calls the API only when a selector heal or visual analysis runs, not on every step.
-- **CI:** add `GEMINI_API_KEY` as a GitHub Actions secret so tests do not skip; be aware each run may incur API usage.
-- **Rate limits / caching:** there is no caching layer in this demo. For real products, consider caching DOM hashes → resolved selectors, backoff on 429, and strict budgets per run.
+| File                            | Purpose                                  |
+| ------------------------------- | ---------------------------------------- |
+| `reports/quality-summary.md`    | Human-readable QA summary for CI review  |
+| `reports/quality-summary.json`  | Structured quality gate summary          |
+| `reports/healed-selectors.json` | Merged selector recovery evidence        |
+| `reports/flake-analysis.json`   | Repeated healing and AI recovery signals |
 
-Dependency note: **`@google/genai`** is Google’s GenAI SDK for JavaScript/TypeScript. If a version looks unfamiliar, run `npm view @google/genai version` and align with [the package’s release notes](https://www.npmjs.com/package/@google/genai).
+CI uploads both `playwright-report` and `qa-intelligence-report` artifacts.
 
-## Prompt transparency (high level)
+## Test Scenarios
 
-Selector healing (`healSelector` in `src/utils/ai.ts`) sends Gemini:
+| ID          | Scenario                                                           | Gate          | Risk                           |
+| ----------- | ------------------------------------------------------------------ | ------------- | ------------------------------ |
+| QA-UI-001   | Login flow recovers dynamic authentication selectors               | Self-healing  | Authentication locator drift   |
+| QA-UI-002   | Checkout recovers dynamic IDs, class renames, and CTA text changes | Self-healing  | Checkout locator drift         |
+| QA-API-001  | Valid order API response satisfies the contract                    | API contract  | API schema compatibility       |
+| QA-API-002  | Invalid order payload returns actionable validation errors         | API contract  | API defect diagnosis           |
+| QA-A11Y-001 | Checkout page has no serious accessibility violations              | Accessibility | Accessible checkout completion |
+| QA-PERF-001 | Checkout UI/API stays inside local performance budgets             | Performance   | User-perceived speed           |
+| QA-VIS-001  | Gemini Vision validates screenshot analysis payloads               | Visual QA     | Visual regression triage       |
 
-- the failing selector and a short **goal** string (what the test is trying to do)
-- the **full page HTML** as context (fine for a toy demo; production code should trim or scope the DOM)
+## Gemini Usage
 
-Visual analysis (`analyzeVisualDiff`) sends:
+Gemini is called only when deterministic recovery is not enough or when the visual QA test is explicitly enabled with `GEMINI_API_KEY`.
 
-- instructions to compare baseline vs current screenshots and return **JSON** with `isRegression` and `explanation`
-- two PNG images as inline data
+The selector healing prompt sends:
 
-## CI Pipeline
-
-The GitHub workflow runs, in order:
-
-- `npm ci`
-- `npm run lint` (ESLint)
-- `npm run format:check` (Prettier)
-- `npm run typecheck` (TypeScript)
-- `npm run test:unit` (Vitest, mocked Gemini)
-- `npx playwright install --with-deps chromium firefox webkit`
-- `npm run test:ci` (Playwright across all three browsers)
-- Uploads `playwright-report` as an artifact on success or failure.
-
-## Example Healing Log
-
-`healed-selectors.json` entries include:
-
-- original selector
-- recovered selector
+- failing selector
 - action goal
-- recovery strategy (`fallback` or `ai`)
-- timestamp and URL
+- current page DOM
 
-This makes test recovery auditable and useful for improving locator design.
+The visual QA prompt sends:
 
-## Results (fill after a run)
+- baseline screenshot
+- current screenshot
+- required JSON output shape
 
-After a local or CI run, you can summarize recoveries from `healed-selectors.json`:
+AI-backed tests are designed as evidence, not as hidden magic. Every recovery is logged so the locator strategy can be reviewed later.
 
-| Metric                   | Example     |
-| ------------------------ | ----------- |
-| Total heal events        | _e.g. 6_    |
-| Resolved by **fallback** | _e.g. 100%_ |
-| Resolved by **AI**       | _e.g. 0%_   |
+## Resume Positioning
 
-Low **AI** percentage on the current demo is expected: fallbacks often succeed before Gemini runs.
+**AI Self-Healing TestOps Suite | Playwright, TypeScript, GitHub Actions, API Testing, Visual QA, Accessibility**
 
-## Demo
-
-Record a short terminal or headed run and save as `docs/assets/self-healing-demo.gif`, then commit it.
-
-![Self-healing demo](docs/assets/self-healing-demo.gif)
-
-## Notes
-
-- AI-based tests are skipped when `GEMINI_API_KEY` is missing.
-- The included `demo` app intentionally mutates element IDs to simulate real-world flaky locator failures.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+- Built an AI-assisted QA automation platform that recovers broken selectors, detects visual regressions, validates APIs, and publishes CI quality reports.
+- Implemented structured failure evidence including healed selector logs, flaky-test analysis, screenshots, traces, and quality gate summaries.
+- Designed a maintainable Playwright framework with fixtures, typed utilities, CI workflows, and report artifacts for real-world QA review.
 
 ## License
 

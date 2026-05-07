@@ -13,7 +13,13 @@
     "test:ui": "npx playwright test --ui",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
+    "test:api": "npx playwright test tests/api-contract.spec.ts --project=chromium",
+    "test:a11y": "npx playwright test tests/accessibility.spec.ts --project=chromium",
+    "test:perf": "npx playwright test tests/performance.spec.ts --project=chromium",
     "report": "npx playwright show-report",
+    "qa:ci": "npm run lint && npm run format:check && npm run typecheck && npm run test:unit && npm run test:ci && npm run qa:report",
+    "qa:demo": "npx playwright test tests/healing-scenarios.spec.ts --project=chromium --reporter=line",
+    "qa:report": "node scripts/qa-report.mjs",
     "typecheck": "npx tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -26,6 +32,7 @@
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^9.39.4",
     "@types/node": "^20.12.7",
     "eslint": "^9.39.4",

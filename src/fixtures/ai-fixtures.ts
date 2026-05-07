@@ -79,7 +79,9 @@ export const test = base.extend<{ smartPage: SmartPage }>({
   smartPage: async ({ page }, use) => {
     // Per-worker file so parallel Playwright workers do not corrupt each other's writes.
     const workerIndex = process.env.TEST_PARALLEL_INDEX ?? '0';
-    const healedSelectorsFile = path.join(process.cwd(), `healed-selectors.${workerIndex}.json`);
+    const reportsDir = path.join(process.cwd(), 'reports');
+    fs.mkdirSync(reportsDir, { recursive: true });
+    const healedSelectorsFile = path.join(reportsDir, `healed-selectors.${workerIndex}.json`);
 
     const logHealedSelector = (
       oldSelector: string,

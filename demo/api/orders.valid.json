@@ -1,0 +1,15 @@
+{
+  "orderId": "ord_1001",
+  "customerEmail": "qa@example.com",
+  "items": [
+    {
+      "sku": "QA-COURSE-TS",
+      "quantity": 2,
+      "price": 24.5
+    }
+  ],
+  "total": 49,
+  "currency": "USD",
+  "status": "created",
+  "responseTimeMs": 128
+}
