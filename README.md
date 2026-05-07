@@ -107,6 +107,12 @@ Generated files:
 
 CI uploads both `playwright-report` and `qa-intelligence-report` artifacts.
 
+## Demo
+
+The demo shows Playwright recovering from selectors that intentionally break at runtime.
+
+![Self-healing demo](docs/assets/self-healing-demo.gif)
+
 ## Test Scenarios
 
 | ID          | Scenario                                                           | Gate          | Risk                           |
