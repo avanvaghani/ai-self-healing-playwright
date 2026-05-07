@@ -2,9 +2,19 @@
 
 [![CI](https://github.com/avanvaghani/ai-self-healing-playwright/actions/workflows/ci.yml/badge.svg)](https://github.com/avanvaghani/ai-self-healing-playwright/actions/workflows/ci.yml)
 
-A resume-ready QA automation project built with **Playwright**, **TypeScript**, **Google Gemini**, and **GitHub Actions**.
+A QA automation project built with **Playwright**, **TypeScript**, **Google Gemini**, and **GitHub Actions**.
 
-It demonstrates a practical modern QA workflow: detect broken selectors, recover stable locators, validate UI/API/accessibility/performance quality gates, and publish evidence that a reviewer can inspect from CI artifacts.
+## Problem -> Solution -> Outcomes
+
+Modern UI test suites break when selectors drift, and teams often lack evidence-rich quality reporting across UI, API, accessibility, performance, and visual checks.
+
+This project implements a self-healing Playwright framework that first tries deterministic fallbacks, then uses Gemini-assisted recovery only when needed, and publishes auditable artifacts for every quality gate.
+
+Current outcomes from local report artifacts:
+
+- 5 quality gates covered (`self-healing`, `api-contract`, `accessibility`, `performance`, `visual`)
+- 67 recovered selector events captured in report evidence
+- Flake-prone selectors grouped into actionable drift signals (`reports/flake-analysis.json`)
 
 ## Why This Project Stands Out
 
@@ -56,11 +66,29 @@ flowchart LR
 
 ## Quick Start
 
+## Evaluate In 5 Minutes
+
+Run these three commands:
+
+```bash
+npm install
+npm run qa:demo
+npm run qa:report
+```
+
+What to check after running:
+
+- `playwright-report/index.html` shows the demo execution.
+- `reports/quality-summary.md` shows quality gate coverage.
+- `reports/healed-selectors.json` shows selector recovery evidence.
+
 ### Prerequisites
 
 - Node.js 18+
 - npm 9+
 - Optional: `GEMINI_API_KEY` for Gemini selector/visual analysis
+
+Without `GEMINI_API_KEY`, deterministic fallback healing and non-AI tests still run. AI-assisted selector healing and semantic visual analysis are only exercised when the key is set.
 
 ### Install
 

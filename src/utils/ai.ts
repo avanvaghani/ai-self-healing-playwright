@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-let client: any = null;
+let client: GoogleGenAI | null = null;
 
 function getClient() {
   if (!client) {
@@ -12,6 +12,22 @@ function getClient() {
     });
   }
   return client;
+}
+
+function extractResponseText(result: unknown): string | null {
+  if (!result || typeof result !== 'object') {
+    return null;
+  }
+
+  const candidates = (result as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
+    .candidates;
+  const text = candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (typeof text !== 'string') {
+    return null;
+  }
+
+  return text.trim();
 }
 
 /**
@@ -45,7 +61,10 @@ export async function healSelector(
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
 
-    const text = result.candidates[0].content.parts[0].text.trim();
+    const text = extractResponseText(result);
+    if (!text) {
+      return null;
+    }
     return text === 'NOT_FOUND' ? null : text;
   } catch (error) {
     console.error('AI Healing Error:', error);
@@ -89,7 +108,10 @@ export async function analyzeVisualDiff(
       ],
     });
 
-    const text = result.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+    const text = extractResponseText(result)?.replace(/```json|```/g, '').trim();
+    if (!text) {
+      return { isRegression: true, explanation: 'AI analysis returned an empty response.' };
+    }
     return JSON.parse(text);
   } catch (error) {
     console.error('AI Visual Analysis Error:', error);
