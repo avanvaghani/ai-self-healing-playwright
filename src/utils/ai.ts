@@ -19,8 +19,9 @@ function extractResponseText(result: unknown): string | null {
     return null;
   }
 
-  const candidates = (result as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
-    .candidates;
+  const candidates = (
+    result as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> }
+  ).candidates;
   const text = candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (typeof text !== 'string') {
@@ -108,7 +109,9 @@ export async function analyzeVisualDiff(
       ],
     });
 
-    const text = extractResponseText(result)?.replace(/```json|```/g, '').trim();
+    const text = extractResponseText(result)
+      ?.replace(/```json|```/g, '')
+      .trim();
     if (!text) {
       return { isRegression: true, explanation: 'AI analysis returned an empty response.' };
     }
