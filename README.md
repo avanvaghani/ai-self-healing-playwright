@@ -39,6 +39,7 @@ npm run qa:report      # generates reports/quality-summary.md
 ```
 
 After running, open:
+
 - `playwright-report/index.html` — execution timeline
 - `reports/quality-summary.md` — quality gate coverage
 - `reports/healed-selectors.json` — selector recovery evidence
@@ -93,15 +94,15 @@ flowchart LR
 
 ## Test Scenarios
 
-| ID          | Scenario                                                           | Gate          |
-| ----------- | ------------------------------------------------------------------ | ------------- |
-| QA-UI-001   | Login flow recovers dynamic authentication selectors               | Self-healing  |
-| QA-UI-002   | Checkout recovers dynamic IDs, class renames, CTA text changes     | Self-healing  |
-| QA-API-001  | Valid order API response satisfies the contract                    | API contract  |
-| QA-API-002  | Invalid order payload returns actionable validation errors         | API contract  |
-| QA-A11Y-001 | Checkout page has no serious accessibility violations              | Accessibility |
-| QA-PERF-001 | Checkout UI/API stays inside local performance budgets             | Performance   |
-| QA-VIS-001  | Gemini Vision validates screenshot analysis payloads               | Visual QA     |
+| ID          | Scenario                                                       | Gate          |
+| ----------- | -------------------------------------------------------------- | ------------- |
+| QA-UI-001   | Login flow recovers dynamic authentication selectors           | Self-healing  |
+| QA-UI-002   | Checkout recovers dynamic IDs, class renames, CTA text changes | Self-healing  |
+| QA-API-001  | Valid order API response satisfies the contract                | API contract  |
+| QA-API-002  | Invalid order payload returns actionable validation errors     | API contract  |
+| QA-A11Y-001 | Checkout page has no serious accessibility violations          | Accessibility |
+| QA-PERF-001 | Checkout UI/API stays inside local performance budgets         | Performance   |
+| QA-VIS-001  | Gemini Vision validates screenshot analysis payloads           | Visual QA     |
 
 ---
 
@@ -131,11 +132,13 @@ npm run test:perf
 Gemini is invoked **only** when deterministic recovery fails or when the visual QA test is explicitly enabled with `GEMINI_API_KEY`.
 
 **Selector healing prompt** sends:
+
 - failing selector
 - action goal
 - current page DOM
 
 **Visual QA prompt** sends:
+
 - baseline screenshot
 - current screenshot
 - required JSON output shape
